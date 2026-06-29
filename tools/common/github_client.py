@@ -291,3 +291,18 @@ class GitHubClient:
             },
         )
         return self._handle_response(res, "Failed to list issues")
+    
+    def close_issue(self, number: int) -> dict[str, Any]:
+        """Close an issue by issue number."""
+        if number < 1:
+            raise ValueError("number must be greater than or equal to 1")
+
+        payload: dict[str, Any] = {
+            "state": "closed",
+        }
+
+        res = self._patch(
+            f"{self._issues_url()}/{number}",
+            json=payload,
+        )
+        return self._handle_response(res, "Failed to close issue")

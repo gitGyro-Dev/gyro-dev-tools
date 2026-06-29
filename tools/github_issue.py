@@ -14,6 +14,7 @@ def main():
     parser.add_argument("--state", default="open", choices=["open", "closed", "all"])
 
     parser.add_argument("--create", action="store_true", help="Create an issue.")
+    parser.add_argument("--close", type=int, metavar="NUMBER", help="Close an issue by issue number.")
     parser.add_argument("--title", help="Issue title.")
     parser.add_argument("--body", help="Issue body text.")
     parser.add_argument("--body-file", help="Path to issue body markdown file.")
@@ -28,6 +29,17 @@ def main():
         repo=repo,
         branch=GITHUB_BRANCH,
     )
+
+    if args.close is not None:
+        issue = client.close_issue(args.close)
+
+        print("Issue closed.")
+        print(f"Repository: {GITHUB_OWNER}/{repo}")
+        print(f"Number: #{issue.get('number')}")
+        print(f"Title: {issue.get('title')}")
+        print(f"State: {issue.get('state')}")
+        print(f"URL: {issue.get('html_url')}")
+        return
 
     if args.create:
         if not args.title:
