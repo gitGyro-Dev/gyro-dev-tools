@@ -14,6 +14,13 @@ def main():
         default=10,
         help="Number of releases to show. Defaults to 10.",
     )
+    parser.add_argument("--create", action="store_true", help="Create a release.")
+    parser.add_argument("--tag", help="Release tag name.")
+    parser.add_argument("--name", help="Release name.")
+    parser.add_argument("--body", help="Release body text.")
+    parser.add_argument("--body-file", help="Path to release body markdown file.")
+    parser.add_argument("--draft", action="store_true", help="Create as draft release.")
+    parser.add_argument("--prerelease", action="store_true", help="Create as prerelease.")
 
     args = parser.parse_args()
     repo = resolve_repo(args.repo)
@@ -29,6 +36,30 @@ def main():
 
     print("Repository releases.")
     print(f"Repository: {GITHUB_OWNER}/{repo}")
+
+    if args.create:
+        if not args.tag:
+            raise RuntimeError("--tag is required when using --create.")
+
+        body = args.body or ""
+
+        if args.body_file:
+            body = Path(args.body_file).read_text(encoding="utf-8")
+
+        release = client.create_release(
+            tag_name=args.tag,
+            name=args.name or args.tag,
+            body=body,
+            draft=args.draft,
+            prerelease=args.prerelease,
+        )
+
+        print("Release created.")
+        print(f"Repository: {GITHUB_OWNER}/{repo}")
+        print(f"Tag: {release.get('tag_name')}")
+        print(f"Name: {release.get('name')}")
+        print(f"URL: {release.get('html_url')}")
+        return
 
     if not releases:
         print("No releases found.")
