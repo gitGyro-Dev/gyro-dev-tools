@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 from common.cli import add_repository_argument
 from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_BRANCH, resolve_repo
@@ -32,11 +33,6 @@ def main():
         branch=GITHUB_BRANCH,
     )
 
-    releases = client.list_releases(limit=args.limit)
-
-    print("Repository releases.")
-    print(f"Repository: {GITHUB_OWNER}/{repo}")
-
     if args.create:
         if not args.tag:
             raise RuntimeError("--tag is required when using --create.")
@@ -60,6 +56,13 @@ def main():
         print(f"Name: {release.get('name')}")
         print(f"URL: {release.get('html_url')}")
         return
+
+    releases = client.list_releases(limit=args.limit)
+
+    print("Repository releases.")
+    print(f"Repository: {GITHUB_OWNER}/{repo}")
+
+   
 
     if not releases:
         print("No releases found.")
