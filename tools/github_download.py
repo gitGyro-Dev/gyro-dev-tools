@@ -1,11 +1,9 @@
 import argparse
 from pathlib import Path
 
-from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
-from common.config import resolve_repo
+from common.cli import add_repository_argument
+from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_BRANCH, resolve_repo
 from common.github_client import GitHubClient
-from common.cli import add_github_common_arguments
-from common.config import resolve_owner, resolve_repo, resolve_branch
 
 
 def main():
@@ -16,27 +14,19 @@ def main():
         help="Local output path. Defaults to remote file path.",
         default=None,
     )
-    parser.add_argument(
-        "--repo",
-        help="Target GitHub repository name. Defaults to GITHUB_REPO.",
-        default=None,
-    )
 
-    add_github_common_arguments(parser)
+    add_repository_argument(parser)
     args = parser.parse_args()
 
     remote_path = args.remote
     output_path = Path(args.output or remote_path)
-
-    owner = resolve_owner(args.owner)
     repo = resolve_repo(args.repo)
-    branch = resolve_branch(args.branch)
 
     client = GitHubClient(
         token=GITHUB_TOKEN,
-        owner=owner,
+        owner=GITHUB_OWNER,
         repo=repo,
-        branch=branch,
+        branch=GITHUB_BRANCH,
     )
 
     content = client.download_file(remote_path)
@@ -45,8 +35,8 @@ def main():
     output_path.write_bytes(content)
 
     print("Download completed.")
-    print(f"Repository: {owner}/{repo}")
-    print(f"Branch: {branch}")
+    print(f"Repository: {GITHUB_OWNER}/{repo}")
+    print(f"Branch: {GITHUB_BRANCH}")
     print(f"Remote: {remote_path}")
     print(f"Output: {output_path}")
 
