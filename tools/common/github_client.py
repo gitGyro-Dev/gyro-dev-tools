@@ -276,3 +276,18 @@ class GitHubClient:
 
         res = self._post(self._issues_url(), json=payload)
         return self._handle_response(res, "Failed to create issue")
+
+
+    def list_issues(self, limit: int = 20, state: str = "open") -> list[dict[str, Any]]:
+        """List repository issues."""
+        if limit < 1:
+            raise ValueError("limit must be greater than or equal to 1")
+
+        res = self._get(
+            self._issues_url(),
+            params={
+                "state": state,
+                "per_page": min(limit, 100),
+            },
+        )
+        return self._handle_response(res, "Failed to list issues")
