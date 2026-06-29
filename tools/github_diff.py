@@ -3,6 +3,7 @@ import difflib
 from pathlib import Path
 
 from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
+from common.config import resolve_repo
 from common.github_client import GitHubClient
 
 
@@ -12,6 +13,11 @@ def main():
     parser.add_argument(
         "--remote",
         help="Remote path in repository. Defaults to local file path.",
+        default=None,
+    )
+    parser.add_argument(
+        "--repo",
+        help="Target GitHub repository name. Defaults to GITHUB_REPO.",
         default=None,
     )
 
@@ -27,7 +33,7 @@ def main():
     client = GitHubClient(
         token=GITHUB_TOKEN,
         owner=GITHUB_OWNER,
-        repo=GITHUB_REPO,
+        repo=resolve_repo(args.repo),
         branch=GITHUB_BRANCH,
     )
 
@@ -46,6 +52,7 @@ def main():
 
     if diff_text:
         print(diff_text)
+        print(f"Repository: {GITHUB_OWNER}/{resolve_repo(args.repo)}")
     else:
         print("No differences.")
 

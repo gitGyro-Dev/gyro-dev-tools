@@ -16,3 +16,6 @@ if not GITHUB_OWNER:
 
 if not GITHUB_REPO:
     raise RuntimeError("GITHUB_REPO is not set.")
+
+def resolve_repo(repo: str | None) -> str:
+    return repo or GITHUB_REPO

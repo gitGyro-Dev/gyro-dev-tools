@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
+from common.config import resolve_repo
 from common.github_client import GitHubClient
 
 
@@ -18,6 +19,11 @@ def main():
         help="Commit message.",
         default=None,
     )
+    parser.add_argument(
+        "--repo",
+        help="Target GitHub repository name. Defaults to GITHUB_REPO.",
+        default=None,
+    )
 
     args = parser.parse_args()
 
@@ -32,7 +38,7 @@ def main():
     client = GitHubClient(
         token=GITHUB_TOKEN,
         owner=GITHUB_OWNER,
-        repo=GITHUB_REPO,
+        repo=resolve_repo(args.repo),
         branch=GITHUB_BRANCH,
     )
 
@@ -45,7 +51,7 @@ def main():
     commit = result.get("commit", {})
 
     print("Update completed.")
-    print(f"Repository: {GITHUB_OWNER}/{GITHUB_REPO}")
+    print(f"Repository: {GITHUB_OWNER}/{resolve_repo(args.repo)}")
     print(f"Branch: {GITHUB_BRANCH}")
     print(f"Path: {remote_path}")
     print(f"Commit: {commit.get('sha')}")
