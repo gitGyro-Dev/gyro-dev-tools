@@ -4,6 +4,8 @@ from pathlib import Path
 from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
 from common.config import resolve_repo
 from common.github_client import GitHubClient
+from common.cli import add_github_common_arguments
+from common.config import resolve_owner, resolve_repo, resolve_branch
 
 
 def main():
@@ -20,16 +22,21 @@ def main():
         default=None,
     )
 
+    add_github_common_arguments(parser)
     args = parser.parse_args()
 
     remote_path = args.remote
     output_path = Path(args.output or remote_path)
 
+    owner = resolve_owner(args.owner)
+    repo = resolve_repo(args.repo)
+    branch = resolve_branch(args.branch)
+
     client = GitHubClient(
         token=GITHUB_TOKEN,
-        owner=GITHUB_OWNER,
-        repo=resolve_repo(args.repo),
-        branch=GITHUB_BRANCH,
+        owner=owner,
+        repo=repo,
+        branch=branch,
     )
 
     content = client.download_file(remote_path)
@@ -38,8 +45,8 @@ def main():
     output_path.write_bytes(content)
 
     print("Download completed.")
-    print(f"Repository: {GITHUB_OWNER}/{resolve_repo(args.repo)}")
-    print(f"Branch: {GITHUB_BRANCH}")
+    print(f"Repository: {owner}/{repo}")
+    print(f"Branch: {branch}")
     print(f"Remote: {remote_path}")
     print(f"Output: {output_path}")
 

@@ -5,6 +5,8 @@ from pathlib import Path
 from common.config import GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH
 from common.config import resolve_repo
 from common.github_client import GitHubClient
+from common.cli import add_github_common_arguments
+from common.config import resolve_owner, resolve_repo, resolve_branch
 
 
 def main():
@@ -21,6 +23,7 @@ def main():
         default=None,
     )
 
+    add_github_common_arguments(parser)
     args = parser.parse_args()
 
     local_path = Path(args.file)
@@ -30,11 +33,15 @@ def main():
 
     remote_path = args.remote or local_path.as_posix()
 
+    owner = resolve_owner(args.owner)
+    repo = resolve_repo(args.repo)
+    branch = resolve_branch(args.branch)
+
     client = GitHubClient(
         token=GITHUB_TOKEN,
-        owner=GITHUB_OWNER,
-        repo=resolve_repo(args.repo),
-        branch=GITHUB_BRANCH,
+        owner=owner,
+        repo=repo,
+        branch=branch,
     )
 
     remote_content = client.download_file(remote_path).decode("utf-8").splitlines()
@@ -52,7 +59,8 @@ def main():
 
     if diff_text:
         print(diff_text)
-        print(f"Repository: {GITHUB_OWNER}/{resolve_repo(args.repo)}")
+        print(f"Repository: {owner}/{repo}")
+        print(f"Branch: {branch}")
     else:
         print("No differences.")
 
