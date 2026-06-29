@@ -54,3 +54,25 @@ class GitHubClient:
             raise RuntimeError(f"Failed to update file: {res.status_code} {res.text}")
 
         return res.json()
+    
+    def download_file(self, path: str) -> bytes:
+        url = f"{self.base_url}/contents/{path}"
+        res = requests.get(
+            url,
+            headers=self.headers,
+            params={"ref": self.branch},
+            timeout=30,
+        )
+
+        if not res.ok:
+            raise RuntimeError(f"Failed to download file: {res.status_code} {res.text}")
+
+        data = res.json()
+
+        if data.get("type") != "file":
+            raise RuntimeError(f"Path is not a file: {path}")
+
+        encoded = data.get("content", "")
+        content = base64.b64decode(encoded)
+
+        return content    
