@@ -281,3 +281,10 @@ class GitHubClient:
             params={"per_page": limit},
         )
         return self._handle_response(res, "Failed to list tags")
+    
+    def list_releases(self, limit: int = 10) -> list[dict]:
+        res = self._get(
+            f"{self.base_url}/releases",
+            params={"per_page": limit},
+        )
+        return self._handle_response(res, "Failed to list releases")
