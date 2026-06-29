@@ -48,10 +48,16 @@ class GitHubClient:
     def _request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         """Execute an HTTP request with shared headers and timeout."""
         timeout = kwargs.pop("timeout", self.DEFAULT_TIMEOUT)
+
+        headers = self.headers.copy()
+        extra_headers = kwargs.pop("headers", None)
+        if extra_headers:
+            headers.update(extra_headers)
+
         return requests.request(
             method=method,
             url=url,
-            headers=self.headers,
+            headers=headers,
             timeout=timeout,
             **kwargs,
         )
@@ -59,14 +65,14 @@ class GitHubClient:
     def _get(self, url: str, **kwargs: Any) -> requests.Response:
         return self._request("GET", url, **kwargs)
 
-    def _put(self, url: str, payload: dict[str, Any]) -> requests.Response:
-        return self._request("PUT", url, json=payload)
+    def _put(self, url: str, **kwargs: Any) -> requests.Response:
+        return self._request("PUT", url, **kwargs)
 
-    def _post(self, url: str, payload: dict[str, Any]) -> requests.Response:
-        return self._request("POST", url, json=payload)
+    def _post(self, url: str, **kwargs: Any) -> requests.Response:
+        return self._request("POST", url, **kwargs)
 
-    def _patch(self, url: str, payload: dict[str, Any]) -> requests.Response:
-        return self._request("PATCH", url, json=payload)
+    def _patch(self, url: str, **kwargs: Any) -> requests.Response:
+        return self._request("PATCH", url, **kwargs)
 
     def _delete(self, url: str, **kwargs: Any) -> requests.Response:
         return self._request("DELETE", url, **kwargs)
@@ -88,14 +94,14 @@ class GitHubClient:
     def _contents_url(self, path: str) -> str:
         return f"{self.base_url}/contents/{path}"
 
-    def _releases_url(self) -> str:
-        return f"{self.base_url}/releases"
+    def _commits_url(self) -> str:
+        return f"{self.base_url}/commits"
 
     def _tags_url(self) -> str:
         return f"{self.base_url}/tags"
 
-    def _commits_url(self) -> str:
-        return f"{self.base_url}/commits"
+    def _releases_url(self) -> str:
+        return f"{self.base_url}/releases"
 
     def _issues_url(self) -> str:
         return f"{self.base_url}/issues"
@@ -170,7 +176,7 @@ class GitHubClient:
         if sha:
             payload["sha"] = sha
 
-        res = self._put(self._contents_url(path), payload)
+        res = self._put(self._contents_url(path), json=payload)
         return self._handle_response(res, "Failed to update file")
 
     # ------------------------------------------------------------------
@@ -240,14 +246,10 @@ class GitHubClient:
             "body": body or "",
             "draft": draft,
             "prerelease": prerelease,
+            "target_commitish": target_commitish or self.branch,
         }
 
-        if target_commitish:
-            payload["target_commitish"] = target_commitish
-        else:
-            payload["target_commitish"] = self.branch
-
-        res = self._post(self._releases_url(), payload)
+        res = self._post(self._releases_url(), json=payload)
         return self._handle_response(res, "Failed to create release")
 
     # ------------------------------------------------------------------
@@ -272,19 +274,5 @@ class GitHubClient:
         if labels:
             payload["labels"] = labels
 
-        res = self._post(self._issues_url(), payload)
+        res = self._post(self._issues_url(), json=payload)
         return self._handle_response(res, "Failed to create issue")
-
-    def list_tags(self, limit: int = 20) -> list[dict]:
-        res = self._get(
-            f"{self.base_url}/tags",
-            params={"per_page": limit},
-        )
-        return self._handle_response(res, "Failed to list tags")
-    
-    def list_releases(self, limit: int = 10) -> list[dict]:
-        res = self._get(
-            f"{self.base_url}/releases",
-            params={"per_page": limit},
-        )
-        return self._handle_response(res, "Failed to list releases")
